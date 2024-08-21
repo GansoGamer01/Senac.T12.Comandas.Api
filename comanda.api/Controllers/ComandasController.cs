@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using comanda.api.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -76,12 +77,22 @@ namespace comanda.api.Controllers
         // POST: api/Comandas
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Comanda>> PostComanda(Comanda comanda)
+        public async Task<ActionResult<Comanda>> PostComanda(ComandaDto comanda)
         {
-            _context.Comandas.Add(comanda);
+            // criando nova comanda \\
+            var novaComanda = new Comanda()
+            {
+                NumeroMesa = comanda.NumeroMesa,
+                NomeCliente = comanda.NomeCliente
+            };
+
+            // adicionando a comanda no banco \\
+            await _context.Comandas.AddAsync(novaComanda);
+
+            // salvando a comanda \\
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetComanda", new { id = comanda.Id }, comanda);
+            return CreatedAtAction("GetComanda", new { id = novaComanda.Id }, comanda);
         }
 
         // DELETE: api/Comandas/5
