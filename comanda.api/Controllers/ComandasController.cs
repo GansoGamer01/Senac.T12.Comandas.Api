@@ -87,7 +87,18 @@ namespace comanda.api.Controllers
             };
 
             // adicionando a comanda no banco \\
+            // INSERT INTO comandas (id, numeromesa) VALUES(1,2) \\
             await _context.Comandas.AddAsync(novaComanda);
+
+            var novoItemComanda = new ComandaItem()
+            {
+                Comanda = novaComanda,
+                CardapioItemId = comanda.CardapioItems[0]
+            };
+
+            // adicionando o novo item na comanda \\
+            // INSERT INTO comandaitems (id, cardapioitemid)
+            await _context.ComandaItems.AddAsync(novoItemComanda);
 
             // salvando a comanda \\
             await _context.SaveChangesAsync();
