@@ -34,10 +34,10 @@ namespace SistemaDeComandas.BancoDeDados
                 .WithOne(ci => ci.Comanda)
                 .HasForeignKey(f => f.ComandaId);
 
-            modelBuilder.Entity<ComandaItem>()
-                .HasOne(ci=>ci.Comanda)
-                .WithMany(ci => ci.ComandaItems)
-                .HasForeignKey(f => f.ComandaId);
+            //modelBuilder.Entity<ComandaItem>()
+            //    .HasOne(ci=>ci.Comanda)
+            //    .WithMany(ci => ci.ComandaItems)
+            //    .HasForeignKey(f => f.ComandaId);
 
             // o item da comanda possui um item do Cardapio \\
             // e sua chave estrangeira é CardapioItemId \\
