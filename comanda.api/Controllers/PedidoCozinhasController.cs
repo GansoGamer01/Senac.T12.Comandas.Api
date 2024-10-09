@@ -1,7 +1,9 @@
-﻿using Comandas.Api.Dtos;
+﻿using comanda.api.DTOs;
+using Comandas.Api.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaDeComandas.BancoDeDados;
+using SistemaDeComandas.Modelos;
 
 namespace Comandas.Api.Controllers
 {
@@ -26,7 +28,7 @@ namespace Comandas.Api.Controllers
         {
             // SELECT * FROM PedidoCozinha p
             // INNER JOIN Comanda c on c.Id = p.ComandaId
-
+            // INNER JOIN PedidoCozinhaItem pci on pci.PedidoCozinhaId = p.id
             var query = _context.PedidoCozinhas
                             .Include(p => p.Comanda)
                             .Include(p => p.PedidoCozinhaItems)
@@ -52,9 +54,33 @@ namespace Comandas.Api.Controllers
 
         // GET api/<PedidoCozinhasController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<ActionResult<PedidoCozinha>> GetPedidoCozinha(int id)
         {
-            return "value";
+            var pedidoCozinha = await _context.PedidoCozinhas.FindAsync(id);
+
+            if (pedidoCozinha == null)
+            {
+                return NotFound();
+            }
+
+            return pedidoCozinha;
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> putPedidoCozinha(int id, PedidoCozinhaUpdateDto pedido)
+        {
+            // consulta  o pedido pelo id informado 
+            // SELECT * FROM pedidocozinha WGERE id = @id
+            var pedidoCozinha = await _context
+                                        .PedidoCozinhas
+                                            .FirstOrDefaultAsync(p => p.Id == id);
+            // alteração do Status
+            pedidoCozinha.SituacaoId = pedido.NovoStatusId;
+
+            // Gravação No banco de dados
+            // UPDATE PedidoCozinha SET SituacaoId = 3 WHERE Id = @id
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
 
     }

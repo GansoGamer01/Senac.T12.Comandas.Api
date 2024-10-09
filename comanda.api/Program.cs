@@ -1,3 +1,4 @@
+using comanda.api;
 using Microsoft.EntityFrameworkCore;
 using SistemaDeComandas.BancoDeDados;
 
@@ -31,6 +32,17 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 app.UseCors("AllowSpecificOrigins"); // aplica a politica CORS \\
+
+// AQUI criação do banco \\
+using(var e = app.Services.CreateScope())
+{
+    var contexto = e.ServiceProvider.GetRequiredService <ComandaContexto>();
+    contexto.Database.Migrate();
+
+    // semear os dados iniciais \\
+    InicializarDados.Semear(contexto);
+}
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

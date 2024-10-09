@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SistemaDeComandas.BancoDeDados;
 
@@ -10,9 +11,11 @@ using SistemaDeComandas.BancoDeDados;
 namespace comanda.api.Migrations
 {
     [DbContext(typeof(ComandaContexto))]
-    partial class ComandaContextoModelSnapshot : ModelSnapshot
+    [Migration("20241001232239_FirstMigration")]
+    partial class FirstMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
