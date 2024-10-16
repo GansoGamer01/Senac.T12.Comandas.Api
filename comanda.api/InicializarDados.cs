@@ -64,28 +64,44 @@ namespace comanda.api
             {
                 var comanda = new Comanda() { NomeCliente = "Rafael", NumeroMesa = 1, SituacaoComanda = 1 };
                 banco.Comandas.Add(comanda);
-                if (!banco.Comandas.Any())
+
+                ComandaItem[] comandaItems =
                 {
-                    banco.AddRange(
-                        new ComandaItem() 
-                        {
-                            Comanda = comanda,
-                            CardapioItemId = 1
-                        },
+                    new ComandaItem()
+                    {
+                        Comanda = comanda,
+                        CardapioItemId = 1
+                    },
 
-                        new ComandaItem()
-                        {
-                            Comanda = comanda,
-                            CardapioItemId = 2
-                        },
+                    new ComandaItem()
+                    {
+                        Comanda = comanda,
+                        CardapioItemId = 2
+                    },
 
-                        new ComandaItem()
-                        {
-                            Comanda = comanda,
-                            CardapioItemId = 3
-                        }
-                    );
+                    new ComandaItem()
+                    {
+                        Comanda = comanda,
+                        CardapioItemId = 3
+                    }
                 };
+
+                if (!banco.ComandaItems.Any())
+                {
+                    banco.ComandaItems.AddRange(comandaItems);
+                };
+                var pedidoCozinha = new PedidoCozinha() { Comanda = comanda };
+                var pedidoCozinha2 = new PedidoCozinha() { Comanda = comanda };
+
+                PedidoCozinhaItem[] pedidoCozinhaItems =
+                {
+                    new PedidoCozinhaItem{PedidoCozinha = pedidoCozinha, ComandaItem = comandaItems[0]},
+                    new PedidoCozinhaItem{PedidoCozinha = pedidoCozinha2 , ComandaItem =comandaItems[1]}
+                };
+
+                banco.PedidoCozinhas.Add(pedidoCozinha);
+                banco.PedidoCozinhas.Add(pedidoCozinha2);
+                banco.PedidoCozinhaItems.AddRange(pedidoCozinhaItems);
             };
             // INSERT INTO cardapioItem (Columns) VALUES(1, "salsicha")
             banco.SaveChanges();
