@@ -2,6 +2,8 @@
 {
     public class ComandaGetDto
     {
+        public int Id { get; internal set; }
+
         public int NumeroMesa { get; set; }
 
         public string NomeCliente { get; set; }

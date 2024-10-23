@@ -24,10 +24,33 @@ namespace comanda.api.Controllers
         }
 
         // GET: api/Comandas
+        // SELECT * FROM Comandas WHERE SituacaoComanda = 1 \\
+        // Consulta as comandas com status aberta(1) \\ 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Comanda>>> GetComandas()
+        public async Task<ActionResult<IEnumerable<ComandaGetDto>>> GetComandas()
         {
-            return await _context.Comandas.ToListAsync();
+            // SELECT c.NumeroMesa, c.NomeCliente FROM Comandas WHERE SituacaoComanda = 1 \\
+            var comandas = 
+                await _context.Comandas
+                .Where(c => c.SituacaoComanda == 1)
+                .Select(c => new ComandaGetDto 
+                { 
+                    Id = c.Id,
+                    NumeroMesa = c.NumeroMesa,
+                    NomeCliente = c.NomeCliente,
+                    ComandaItens = c.ComandaItems
+                    .Select(ci => new ComandaItensGetDto
+                    {
+                        Id = ci.Id,
+                        Titulo = ci.CardapioItem.Titulo,
+                    }
+                    ).ToList(),
+
+                }
+                ).ToListAsync();
+
+            // retorna o conteudo com uma lista de comandas \\
+            return Ok(comandas);
         }
 
         // GET: api/Comandas/5
@@ -203,6 +226,21 @@ namespace comanda.api.Controllers
             _context.Comandas.Remove(comanda);
             await _context.SaveChangesAsync();
 
+            return NoContent();
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> PatchComanda(int id)
+        {
+            // consulto a comnda SELECT * FROM Comandas WHERE id = {id} \\
+            var comanda = await _context.Comandas.FindAsync(id);
+            if (comanda == null) // retorna 404 \\
+                return NotFound();
+            // altera a comanda \\
+            comanda.SituacaoComanda = 2;
+            await _context.SaveChangesAsync();
+
+            // retorna o 204 \\
             return NoContent();
         }
 
