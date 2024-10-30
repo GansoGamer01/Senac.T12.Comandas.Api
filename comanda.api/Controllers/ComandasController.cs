@@ -103,38 +103,72 @@ namespace comanda.api.Controllers
             // SELECT * FROM Comandas WHERE id = 2 \\
             var ComandaUpdate = await _context.Comandas.FirstAsync(c => c.Id == id);
 
+            // verifica se foi informada uma nova mesa \\
             if(comanda.NumeroMesa > 0)
+            {
+                // verificar a disponibilidade da nova mesa \\
+                // SELECT * FROM mesas WHERE NumerMesa = 2 \\ 
+                var mesa = await _context.Mesas.FirstOrDefaultAsync(m => m.NumeroMesa == comanda.NumeroMesa);
+                if(mesa != null)
+                    return BadRequest("mesa invalida");
+
+                if (mesa.SituacaoMesa != 0)
+                    return BadRequest("mesa ocupada");
+
+                // alocar a nova mesa \\
+                mesa.SituacaoMesa = 1;
+
+                // desalocar a mesa atual \\
+                var mesaAtual = await _context.Mesas.FirstAsync(mesa => mesa.NumeroMesa == ComandaUpdate.NumeroMesa);
+                mesaAtual.SituacaoMesa = 0;
+
+                // atualiza o numero da mesa na comanda \\
                 ComandaUpdate.NumeroMesa = comanda.NumeroMesa;
+            }
+                
 
             if(!string.IsNullOrEmpty(comanda.NomeCliente))
                 ComandaUpdate.NomeCliente = comanda.NomeCliente;
 
-            foreach (var item in comanda.CardapioItems)
+            foreach (var item in comanda.ComandaItems)
             {
-                var novoComandaItem = new ComandaItem()
+                // incluir \\
+                if (item.incluir)
                 {
-                    Comanda = ComandaUpdate,
-                    CardapioItemId = item
-                };
-                await _context.ComandaItems.AddAsync(novoComandaItem);
-
-                // verificar se o cardapio possui preparo, se sim criar o pedido da cozinha \\
-                var cardapioItem = await _context.cardapioItems.FindAsync(item);
-                if (cardapioItem.PossuiPreparo)
-                {
-                    var novoPedidoCozinha = new PedidoCozinha()
+                    var novoComandaItem = new ComandaItem()
                     {
                         Comanda = ComandaUpdate,
-                        SituacaoId = 1
+                        CardapioItemId = item.cardapioItemId
                     };
-                    await _context.PedidoCozinhas.AddAsync(novoPedidoCozinha);
-                    var novoPedidoCozinhaItem = new PedidoCozinhaItem()
+                    await _context.ComandaItems.AddAsync(novoComandaItem);
+                
+                
+
+                    // verificar se o cardapio possui preparo, se sim criar o pedido da cozinha \\
+                    var cardapioItem = await _context.cardapioItems.FindAsync(item);
+                    if (cardapioItem.PossuiPreparo)
                     {
-                        PedidoCozinha = novoPedidoCozinha,
-                        ComandaItem = novoComandaItem
+                        var novoPedidoCozinha = new PedidoCozinha()
+                        {
+                            Comanda = ComandaUpdate,
+                            SituacaoId = 1
+                        };
+                        await _context.PedidoCozinhas.AddAsync(novoPedidoCozinha);
+                        var novoPedidoCozinhaItem = new PedidoCozinhaItem()
+                        {
+                            PedidoCozinha = novoPedidoCozinha,
+                            ComandaItem = novoComandaItem
+                        };
+                        await _context.PedidoCozinhaItems.AddAsync(novoPedidoCozinhaItem);
                     };
-                    await _context.PedidoCozinhaItems.AddAsync(novoPedidoCozinhaItem);
-                };
+                }
+
+                // exluir \\
+                if(item.excluir)
+                {
+                    var comandaItemExcluir = await _context.ComandaItems.FirstAsync(f => f.Id == item.Id);
+                    _context.ComandaItems.Remove(comandaItemExcluir);
+                }
             }
 
             try
@@ -161,6 +195,18 @@ namespace comanda.api.Controllers
         [HttpPost]
         public async Task<ActionResult<Comanda>> PostComanda(ComandaDto comanda)
         {
+            // verificar se a mesa está disponivel \\
+            // select * FROM MESAS where numeromesa = 2 \\
+            var mesa = _context.Mesas.First(m => m.NumeroMesa == comanda.NumeroMesa);
+            if (mesa is null)
+                return BadRequest("mesa não encontrada");
+            if(mesa.SituacaoMesa != 0)
+            {
+                return BadRequest("está mesa está ocupada");
+            }
+            // altera a mesa para ocupada, para não permitir abrir outra comanda para a mesma mesa \\
+            mesa.SituacaoMesa = 1;
+
             // criando nova comanda \\
             var novaComanda = new Comanda()
             {
@@ -238,6 +284,9 @@ namespace comanda.api.Controllers
                 return NotFound();
             // altera a comanda \\
             comanda.SituacaoComanda = 2;
+
+            var mesa = await _context.Mesas.FirstAsync(m => m.NumeroMesa == comanda.NumeroMesa);
+            mesa.SituacaoMesa = 0;
             await _context.SaveChangesAsync();
 
             // retorna o 204 \\
