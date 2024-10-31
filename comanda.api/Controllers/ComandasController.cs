@@ -283,7 +283,7 @@ namespace comanda.api.Controllers
             if (comanda == null) // retorna 404 \\
                 return NotFound();
             // altera a comanda \\
-            comanda.SituacaoComanda = 2;
+            comanda.SituacaoComanda = 1;
 
             var mesa = await _context.Mesas.FirstAsync(m => m.NumeroMesa == comanda.NumeroMesa);
             mesa.SituacaoMesa = 0;
