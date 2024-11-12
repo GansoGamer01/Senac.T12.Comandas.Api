@@ -50,14 +50,16 @@ namespace SistemaDeComandas.BancoDeDados
             modelBuilder.Entity<PedidoCozinha>()
                 .HasMany<PedidoCozinhaItem>()
                 .WithOne(pci => pci.PedidoCozinha)
-                .HasForeignKey(pci => pci.PedidoCozinhaId);
+                .HasForeignKey(pci => pci.PedidoCozinhaId)
+                .OnDelete(DeleteBehavior.NoAction);
             
             // pedido cozinha item possui um comanda id \\
             // e sua chave estrangeira é comanda id \\
             modelBuilder.Entity<PedidoCozinhaItem>()
                 .HasOne(ci => ci.PedidoCozinha)
                 .WithMany(ci => ci.PedidoCozinhaItems)
-                .HasForeignKey(pci => pci.PedidoCozinhaId);
+                .HasForeignKey(pci => pci.PedidoCozinhaId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             base.OnModelCreating(modelBuilder);
         }
