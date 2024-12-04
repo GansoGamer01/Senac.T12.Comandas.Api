@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
+using comanda.api.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SistemaDeComandas.BancoDeDados;
 using SistemaDeComandas.Modelos;
 
@@ -19,6 +24,34 @@ namespace comanda.api.Controllers
         public UsuariosController(ComandaContexto context)
         {
             _context = context;
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<UsuarioResponse>> Login([FromBody] UsuarioRequest usuarioRequest)
+        {
+            // Crie um token JWT
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes("3e8acfc238f45a314fd4b2bde272678ad30bd1774743a11dbc5c53ac71ca494b");
+            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email.Equals(usuarioRequest.Email));
+            if (usuario == null)
+                return NotFound("Usuario invalido");
+            if (!usuario.Senha.Equals(usuarioRequest.Senha))
+                return BadRequest("Usuario/Senha invalido");
+            var tokenDescriptor = new SecurityTokenDescriptor
+
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name, usuario.Nome),
+                    new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString())
+                }),
+                Expires = DateTime.UtcNow.AddHours(1), // Tempo de expiração do token
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            return Ok(new UsuarioResponse() { Id = 1, Nome = "rafael", Token = tokenString });
         }
 
         // GET: api/Usuarios
